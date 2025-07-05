@@ -1,0 +1,331 @@
+ <!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <title>Architecture VXLAN EVPN entre deux Data Centers</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script defer src="main.js"></script>
+
+</head>
+<body>
+<div id="three-container"></div> <!-- Contiendra la scène 3D -->
+
+<h1>Déploiement VXLAN EVPN entre deux Data Centers</h1>
+
+<div class="section">
+    <h2>🎯 Objectif</h2>
+    <p>Le but est de mettre en œuvre une interconnexion entre deux data centers (DC1 et DC2) à l’aide de VXLAN EVPN, permettant l’extension du VLAN 10 sur une infrastructure L3.</p>
+</div>
+
+<div class="section">
+    <h2>🧭 Architecture du Projet</h2>
+    <p>Cette section décrit l’architecture physique et logique du projet. Tu peux insérer ici un diagramme réseau :</p>
+
+    <img src="vxlan.png" alt="Diagramme de l'architecture VXLAN EVPN">
+    <p>
+        Le projet repose sur une architecture réseau à double plan : un réseau <strong>underlay</strong> utilisant OSPF pour la connectivité IP entre les équipements, et un réseau <strong>overlay</strong> basé sur VXLAN EVPN pour le transport de la couche 2 sur IP entre les datacenters.
+        Les équipements impliqués incluent des switches Arista (Leaf et Spine) et un routeur Cisco pour la connectivité backbone.
+    </p>
+
+    <h3>Table de Dimensionnement du Réseau</h3>
+
+    <table  border="1" cellpadding="8" cellspacing="0" style="margin: 0 auto; border-collapse: collapse;">
+        <thead>
+        <tr style="background-color:#f2f2f2;">
+            <th>Type</th>
+            <th>Élément</th>
+            <th>Interface</th>
+            <th>Adresse IP / ID</th>
+            <th>Description</th>
+        </tr>
+        </thead>
+        <tbody>
+        <!-- Underlay -->
+        <tr>
+            <td rowspan="4"><strong>Underlay</strong></td>
+            <td>Leaf1</td>
+            <td>Ethernet1</td>
+            <td>192.168.1.2/30</td>
+            <td>Lien vers Spine1</td>
+        </tr>
+        <tr>
+            <td>Leaf2</td>
+            <td>Ethernet1</td>
+            <td>192.168.2.2/30</td>
+            <td>Lien vers Spine2</td>
+        </tr>
+        <tr>
+            <td>Spine1</td>
+            <td>Loopback0</td>
+            <td>2.2.2.1/32</td>
+            <td>ID BGP / OSPF</td>
+        </tr>
+        <tr>
+            <td>Spine2</td>
+            <td>Loopback0</td>
+            <td>2.2.2.2/32</td>
+            <td>ID BGP / OSPF</td>
+        </tr>
+
+        <!-- Overlay -->
+        <tr>
+            <td rowspan="4"><strong>Overlay</strong></td>
+            <td>Leaf1</td>
+            <td>Loopback0</td>
+            <td>1.1.1.1/32</td>
+            <td>VTEP Source (VXLAN)</td>
+        </tr>
+        <tr>
+            <td>Leaf2</td>
+            <td>Loopback0</td>
+            <td>1.1.1.2/32</td>
+            <td>VTEP Source (VXLAN)</td>
+        </tr>
+        <tr>
+            <td>VXLAN</td>
+            <td>VNI 10100</td>
+            <td>VLAN 10</td>
+            <td>10100 ↔ VLAN 10</td>
+            <td>Transport overlay L2 étendu</td>
+        </tr>
+        <tr>
+            <td>Host VPC1/VPC2</td>
+            <td>VLAN 10</td>
+            <td>10.10.10.1 / 10.10.10.2</td>
+            <td>Adressage IP des hôtes</td>
+            <td>Communication via VXLAN EVPN</td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+<div class="section">
+    <h2>🏗️ Architecture Logique</h2>
+    <p>Chaque Leaf dispose d’une interface Loopback0 utilisée comme source VXLAN (VTEP). Les VLANs sont encapsulés en VXLAN avec des VNIs correspondants.</p>
+</div>
+
+<div class="section">
+    <h2>🔀 Plan de Contrôle</h2>
+    <p>OSPF assure le routage IP de base. BGP EVPN transporte les informations de MAC/IP/VNI entre les Leaf via les Spine (RR).</p>
+</div>
+
+<div class="section">
+    <h2>📡 Plan de Données</h2>
+    <p>Les Leaf encapsulent le trafic L2 dans des paquets VXLAN, acheminés sur le réseau IP jusqu’à d’autres VTEP (Leaf distants).</p>
+</div>
+
+    <div class="section">
+        <h2>🔧 Configuration des Équipements</h2>
+
+        <h3>🟩 Leaf1 (DC1)</h3>
+        <pre>
+hostname leaf1
+!
+interface Loopback0
+ ip address 1.1.1.1/32
+!
+interface Ethernet1
+ description uplink to spine1
+ no switchport
+ ip address 192.168.1.2/30
+!
+interface Ethernet2
+ description Host VPC1
+ switchport
+ switchport access vlan 10
+!
+vlan 10
+!
+interface Vxlan1
+ vxlan source-interface Loopback0
+ vxlan udp-port 4789
+ vxlan vlan 10 vni 10100
+!
+router bgp 65000
+ router-id 1.1.1.1
+ no bgp default ipv4-unicast
+ neighbor 2.2.2.1 remote-as 65000
+ neighbor 2.2.2.1 update-source Loopback0
+ neighbor 2.2.2.2 remote-as 65000
+ neighbor 2.2.2.2 update-source Loopback0
+ !
+ address-family evpn
+  neighbor 2.2.2.1 activate
+  neighbor 2.2.2.2 activate
+!
+router ospf 1
+ router-id 1.1.1.1
+ network 1.1.1.1/32 area 0
+ network 192.168.1.2/30 area 0
+        </pre>
+        <img src="img1.png" >
+
+
+        <h3>🟦 Leaf2 (DC2)</h3>
+        <pre>
+hostname leaf2
+!
+interface Loopback0
+ ip address 1.1.1.2/32
+!
+vlan 10
+interface vlan 10
+ip address 10.10.10.2 255.255.255.252
+interface Ethernet1
+ description uplink to spine2
+ no switchport
+ ip address 192.168.2.2/30
+!
+interface Ethernet2
+ description Host VPC2
+ switchport
+ switchport access vlan 10
+!
+interface Vxlan1
+ vxlan source-interface Loopback0
+ vxlan udp-port 4789
+ vxlan vlan 10 vni 10100
+ vxlan flood vtep 1.1.1.1
+!
+router bgp 65000
+ router-id 1.1.1.2
+ bgp default ipv4-unicast
+ neighbor 2.2.2.1 remote-as 65000
+ neighbor 2.2.2.1 update-source Loopback0
+ neighbor 2.2.2.2 remote-as 65000
+ neighbor 2.2.2.2 update-source Loopback0
+ !
+ address-family evpn
+  neighbor 2.2.2.1 activate
+  neighbor 2.2.2.2 activate
+!
+ip routing
+!
+router ospf 1
+ router-id 1.1.1.2
+ network 1.1.1.2/32 area 0
+ network 192.168.2.2/30 area 0
+        </pre>
+        <img src="img2.png" >
+
+
+        <h3>⬛ Spine1</h3>
+        <pre>
+hostname spine1
+interface Loopback0
+ ip address 2.2.2.1 255.255.255.255
+!
+interface eth1 
+ description to leaf1
+ no switchport
+ ip address 192.168.1.1 255.255.255.252
+ no shut
+!
+interface eth2 
+ description to backbone
+ no switchport 
+ ip address 200.0.0.1 255.255.255.252
+ no shut
+!
+ip routing
+router ospf 1
+ router-id 2.2.2.1
+ network 2.2.2.1 0.0.0.0 area 0
+ network 192.168.1.0 0.0.0.3 area 0
+ network 200.0.0.0 0.0.0.3 area 0
+!
+router bgp 65000
+  neighbor 1.1.1.2 remote-as 65000
+  neighbor 1.1.1.2 update-source Loopback0
+  !
+  address-family evpn
+    neighbor 1.1.1.2 activate
+    neighbor 1.1.1.2 route-reflector-client
+
+        </pre>
+        <img src="img3.png" >
+
+        <h3>⬛ Spine2</h3>
+        <pre>
+hostname spine2
+interface Loopback0
+ ip address 2.2.2.2 255.255.255.255
+!
+interface eth1
+ no switchport
+ description to leaf2
+ ip address 192.168.2.1 255.255.255.252
+ no shut
+!
+interface eth2
+ no switchport
+ description to backbone
+ ip address 200.0.0.5 255.255.255.252
+ no shut
+!
+ip routing
+router ospf 1
+ router-id 2.2.2.2
+ network 2.2.2.2 0.0.0.0 area 0
+ network 192.168.2.0 0.0.0.3 area 0
+ network 200.0.0.4 0.0.0.3 area 0
+!
+router bgp 65000
+  neighbor 1.1.1.2 remote-as 65000
+  neighbor 1.1.1.2 update-source Loopback0
+  !
+  address-family evpn
+    neighbor 1.1.1.2 activate
+    neighbor 1.1.1.2 route-reflector-client
+
+        </pre>
+        <img src="img4.png" >
+
+        <h3>⬛ Backbone</h3>
+        <pre>
+hostname backbone
+interface eth1/0
+ description to spine1
+ ip address 200.0.0.2 255.255.255.252
+ no shutdown
+!
+interface eth1/1
+ description to spine2
+ ip address 200.0.0.6 255.255.255.252
+ no shutdown
+!
+router ospf 1
+ network 200.0.0.0 0.0.0.3 area 0
+ network 200.0.0.4 0.0.0.3 area 0
+
+        </pre>
+        <img src="img5.png" >
+
+    </div>
+<div class="section">
+    <h2>✅ Test de Validation</h2>
+    <p>Voici les vérifications recommandées après le déploiement :</p>
+    <ul>
+        <li>✔️ Vérification des VNIs actifs : <code>show vxlan</code> ou <code>show interface vxlan1</code></li>
+        <img src="img7.png" >
+        <li>✔️ Ping entre les hôtes (VPC1 & VPC2)</li>
+        <img src="img8.png" >
+        <li>✔️ Vérification du mapping VNI/MAC/IP</li>
+        <img src="img9.png" >
+        <li>✔️ Traceroute entre les hôtes pour confirmer l’encapsulation/décapsulation</li>
+        <img src="img10.png" >
+    </ul>
+</div>
+
+</body>
+<footer>
+    <p>&copy; 2025 Guide Terraform avec AWS. Tous droits réservés.</p>
+    <p>Contact: <a href="mailto:amadouadmnsys@gmail.com" style="color: #fff;">amadouadmnsys@gmail.com</a></p>
+</footer>
+</html>
