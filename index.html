@@ -35,74 +35,80 @@
 
     <h3>Table de Dimensionnement du Réseau</h3>
 
-    <table border="1" cellpadding="8" cellspacing="0" style="margin: 0 auto; border-collapse: collapse; min-width: 700px; max-width: 100%;">
-        <thead>
-        <tr style="background-color:#f2f2f2;">
-            <th>Type</th>
-            <th>Élément</th>
-            <th>Interface</th>
-            <th>Adresse IP / ID</th>
-            <th>Description</th>
-        </tr>
-        </thead>
-        <tbody>
-        <!-- Underlay -->
-        <tr>
-            <td rowspan="4"><strong>Underlay</strong></td>
-            <td>Leaf1</td>
-            <td>Ethernet1</td>
-            <td>192.168.1.2/30</td>
-            <td>Lien vers Spine1</td>
-        </tr>
-        <tr>
-            <td>Leaf2</td>
-            <td>Ethernet1</td>
-            <td>192.168.2.2/30</td>
-            <td>Lien vers Spine2</td>
-        </tr>
-        <tr>
-            <td>Spine1</td>
-            <td>Loopback0</td>
-            <td>2.2.2.1/32</td>
-            <td>ID BGP / OSPF</td>
-        </tr>
-        <tr>
-            <td>Spine2</td>
-            <td>Loopback0</td>
-            <td>2.2.2.2/32</td>
-            <td>ID BGP / OSPF</td>
-        </tr>
+    <div style="width: 100%; overflow-x: auto;">
+  <table style="border-collapse: collapse; margin: 0 auto; min-width: 600px; width: 100%; max-width: 100%;">
+    <thead>
+      <tr style="background-color: #f2f2f2; text-align: left;">
+        <th style="padding: 10px; border: 1px solid #ddd;">Type</th>
+        <th style="padding: 10px; border: 1px solid #ddd;">Élément</th>
+        <th style="padding: 10px; border: 1px solid #ddd;">Interface</th>
+        <th style="padding: 10px; border: 1px solid #ddd;">Adresse / ID</th>
+        <th style="padding: 10px; border: 1px solid #ddd;">Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Underlay -->
+      <tr>
+        <td style="padding: 10px; border: 1px solid #ddd;">Underlay</td>
+        <td style="padding: 10px; border: 1px solid #ddd;">Leaf1</td>
+        <td style="padding: 10px; border: 1px solid #ddd;">Ethernet1</td>
+        <td style="padding: 10px; border: 1px solid #ddd;">192.168.1.2/30</td>
+        <td style="padding: 10px; border: 1px solid #ddd;">Lien vers Spine1</td>
+      </tr>
+      <tr>
+        <td style="padding: 10px; border: 1px solid #ddd;">Underlay</td>
+        <td style="padding: 10px; border: 1px solid #ddd;">Leaf2</td>
+        <td style="padding: 10px; border: 1px solid #ddd;">Ethernet1</td>
+        <td style="padding: 10px; border: 1px solid #ddd;">192.168.2.2/30</td>
+        <td style="padding: 10px; border: 1px solid #ddd;">Lien vers Spine2</td>
+      </tr>
+      <tr>
+        <td style="padding: 10px; border: 1px solid #ddd;">Underlay</td>
+        <td style="padding: 10px; border: 1px solid #ddd;">Spine1</td>
+        <td style="padding: 10px; border: 1px solid #ddd;">Loopback0</td>
+        <td style="padding: 10px; border: 1px solid #ddd;">2.2.2.1/32</td>
+        <td style="padding: 10px; border: 1px solid #ddd;">ID BGP / OSPF</td>
+      </tr>
+      <tr>
+        <td style="padding: 10px; border: 1px solid #ddd;">Underlay</td>
+        <td style="padding: 10px; border: 1px solid #ddd;">Spine2</td>
+        <td style="padding: 10px; border: 1px solid #ddd;">Loopback0</td>
+        <td style="padding: 10px; border: 1px solid #ddd;">2.2.2.2/32</td>
+        <td style="padding: 10px; border: 1px solid #ddd;">ID BGP / OSPF</td>
+      </tr>
 
-        <!-- Overlay -->
-        <tr>
-            <td rowspan="4"><strong>Overlay</strong></td>
-            <td>Leaf1</td>
-            <td>Loopback0</td>
-            <td>1.1.1.1/32</td>
-            <td>VTEP Source (VXLAN)</td>
-        </tr>
-        <tr>
-            <td>Leaf2</td>
-            <td>Loopback0</td>
-            <td>1.1.1.2/32</td>
-            <td>VTEP Source (VXLAN)</td>
-        </tr>
-        <tr>
-            <td>VXLAN</td>
-            <td>VNI 10100</td>
-            <td>VLAN 10</td>
-            <td>10100 ↔ VLAN 10</td>
-            <td>Transport overlay L2 étendu</td>
-        </tr>
-        <tr>
-            <td>Host VPC1/VPC2</td>
-            <td>VLAN 10</td>
-            <td>10.10.10.1 / 10.10.10.2</td>
-            <td>Adressage IP des hôtes</td>
-            <td>Communication via VXLAN EVPN</td>
-        </tr>
-        </tbody>
-    </table>
+      <!-- Overlay -->
+      <tr>
+        <td style="padding: 10px; border: 1px solid #ddd;">Overlay</td>
+        <td style="padding: 10px; border: 1px solid #ddd;">Leaf1</td>
+        <td style="padding: 10px; border: 1px solid #ddd;">Loopback0</td>
+        <td style="padding: 10px; border: 1px solid #ddd;">1.1.1.1/32</td>
+        <td style="padding: 10px; border: 1px solid #ddd;">VTEP Source</td>
+      </tr>
+      <tr>
+        <td style="padding: 10px; border: 1px solid #ddd;">Overlay</td>
+        <td style="padding: 10px; border: 1px solid #ddd;">Leaf2</td>
+        <td style="padding: 10px; border: 1px solid #ddd;">Loopback0</td>
+        <td style="padding: 10px; border: 1px solid #ddd;">1.1.1.2/32</td>
+        <td style="padding: 10px; border: 1px solid #ddd;">VTEP Source</td>
+      </tr>
+      <tr>
+        <td style="padding: 10px; border: 1px solid #ddd;">Overlay</td>
+        <td style="padding: 10px; border: 1px solid #ddd;">VXLAN</td>
+        <td style="padding: 10px; border: 1px solid #ddd;">VNI 10100</td>
+        <td style="padding: 10px; border: 1px solid #ddd;">VLAN 10</td>
+        <td style="padding: 10px; border: 1px solid #ddd;">Transport L2 étendu</td>
+      </tr>
+      <tr>
+        <td style="padding: 10px; border: 1px solid #ddd;">Overlay</td>
+        <td style="padding: 10px; border: 1px solid #ddd;">Host VPC1/VPC2</td>
+        <td style="padding: 10px; border: 1px solid #ddd;">VLAN 10</td>
+        <td style="padding: 10px; border: 1px solid #ddd;">10.10.10.1 / 10.10.10.2</td>
+        <td style="padding: 10px; border: 1px solid #ddd;">IP Hôtes</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
 </div>
 
 <div class="section">
