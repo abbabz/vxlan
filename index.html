@@ -316,7 +316,7 @@ router ospf 1
     </div>
 <div class="section">
     <h2>✅ Test de Validation</h2>
-    <p>Voici les vérifications recommandées après le déploiement :</p>
+    <p>Voici les vérifications après le déploiement :</p>
     <ul>
         <li>✔️ Vérification des VNIs actifs : <code>show vxlan</code> ou <code>show interface vxlan1</code></li>
         <img src="img7.png" >
@@ -327,6 +327,14 @@ router ospf 1
         <li>✔️ Traceroute entre les hôtes pour confirmer l’encapsulation/décapsulation</li>
         <img src="img10.png" >
     </ul>
+</div>
+ <div class="section">
+    <p>La mise en place de l’interconnexion VXLAN EVPN entre les deux data centers a permis d’étendre la connectivité de niveau 2 sur une infrastructure de niveau 3, tout en conservant une haute disponibilité et une flexibilité opérationnelle. Grâce à l’utilisation d’OSPF pour le plan underlay et de BGP EVPN pour le plan overlay, l’architecture garantit une séparation claire des responsabilités et une scalabilité optimale.
+
+Les tests de validation réalisés (connectivité des hôtes, mapping VNI/MAC/IP, encapsulation/décapsulation VXLAN) confirment le bon fonctionnement de l’architecture. Cette solution pose ainsi les bases solides d’une infrastructure moderne, adaptée aux environnements multicloud, aux migrations de VM et à la virtualisation des services réseau.
+
+Ce projet démontre la pertinence des technologies VXLAN EVPN dans les contextes de data centers distribués, et ouvre la voie à une intégration future avec des solutions SDN ou des contrôleurs centralisés pour une automatisation avancée.</p>
+    
 </div>
 
 </body>
